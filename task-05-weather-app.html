@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Station Weather</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Special+Elite&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --navy: #16232e;
+    --navy-deep: #0f1922;
+    --brass: #c9a24b;
+    --brass-dim: #8f7638;
+    --cloud: #eef1f0;
+    --teal: #4c7f77;
+  }
+
+  body {
+    background-color: var(--navy);
+    background-image: radial-gradient(circle at 50% -10%, #203243 0%, var(--navy) 55%);
+    color: var(--cloud);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 16px;
+  }
+
+  .eyebrow {
+    font-family: 'Special Elite', monospace;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--brass);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    margin-bottom: 26px;
+  }
+
+  /* ============================
+     SEARCH CONTROLS
+     ============================ */
+  .controls {
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 22px;
+  }
+
+  .search-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--brass-dim);
+    background-color: var(--navy-deep);
+    color: var(--cloud);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+  }
+
+  input::placeholder {
+    color: #7f8d97;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--brass);
+  }
+
+  button {
+    font-family: 'Special Elite', monospace;
+    font-size: 13px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: var(--brass);
+    color: var(--navy-deep);
+  }
+
+  button:hover {
+    background-color: #d9b463;
+  }
+
+  #locationBtn {
+    width: 100%;
+    background-color: transparent;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+  }
+
+  #locationBtn:hover {
+    background-color: rgba(76, 127, 119, 0.15);
+  }
+
+  /* ============================
+     INSTRUMENT PANEL
+     ============================ */
+  #result {
+    display: none;
+    width: 100%;
+    max-width: 380px;
+    background-color: var(--navy-deep);
+    border: 2px solid var(--brass-dim);
+    border-radius: 14px;
+    padding: 28px 26px;
+    position: relative;
+    margin-top: 22px;
+  }
+
+  /* brass corner rivets */
+  #result::before, #result::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--brass);
+    top: 12px;
+  }
+  #result::before { left: 12px; }
+  #result::after   { right: 12px; }
+
+  .panel-label {
+    font-family: 'Special Elite', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--brass);
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  #cityName {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  /* gauge-style ring behind the temperature */
+  .gauge {
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 14px auto;
+    border-radius: 50%;
+    border: 6px solid var(--teal);
+    box-shadow: inset 0 0 0 4px var(--navy-deep), inset 0 0 0 6px var(--brass-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  #temperature {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--cloud);
+  }
+
+  #condition {
+    font-family: 'Special Elite', monospace;
+    font-size: 12.5px;
+    color: var(--brass);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+
+  #details {
+    text-align: center;
+    font-size: 13px;
+    color: #a9b7be;
+    border-top: 1px dashed var(--brass-dim);
+    padding-top: 12px;
+  }
+
+  #message {
+    color: var(--brass);
+    font-family: 'Special Elite', monospace;
+    font-size: 13px;
+    margin-top: 14px;
+    text-align: center;
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="eyebrow">Station Readout</div>
+  <h1>Weather</h1>
+
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="Enter a city name">
+      <button id="searchBtn">Search</button>
+    </div>
+    <button id="locationBtn">Use My Location</button>
+  </div>
+
+  <div id="result">
+    <div class="panel-label">Current Conditions</div>
+    <div id="cityName"></div>
+    <div class="gauge">
+      <div id="temperature"></div>
+      <div id="condition"></div>
+    </div>
+    <div id="details"></div>
+  </div>
+
+  <div id="message"></div>
+
+  <script>
+    // Uses Open-Meteo, a free weather API that doesn't require an API key:
+    // https://open-meteo.com/
+
+    const cityInput = document.getElementById('cityInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const locationBtn = document.getElementById('locationBtn');
+    const resultBox = document.getElementById('result');
+    const messageEl = document.getElementById('message');
+
+    const weatherCodeMap = {
+      0: 'Clear sky',
+      1: 'Mainly clear',
+      2: 'Partly cloudy',
+      3: 'Overcast',
+      45: 'Fog',
+      48: 'Depositing rime fog',
+      51: 'Light drizzle',
+      61: 'Slight rain',
+      63: 'Moderate rain',
+      65: 'Heavy rain',
+      71: 'Slight snow',
+      80: 'Rain showers',
+      95: 'Thunderstorm'
+    };
+
+    function showMessage(text) {
+      messageEl.textContent = text;
+      resultBox.style.display = 'none';
+    }
+
+    function getWeather(lat, lon, displayName) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+
+      fetch(url)
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          const current = data.current_weather;
+          const description = weatherCodeMap[current.weathercode] || 'Unknown conditions';
+
+          document.getElementById('cityName').textContent = displayName;
+          document.getElementById('temperature').textContent = Math.round(current.temperature) + '°C';
+          document.getElementById('condition').textContent = description;
+          document.getElementById('details').textContent =
+            'Wind speed: ' + current.windspeed + ' km/h';
+
+          messageEl.textContent = '';
+          resultBox.style.display = 'block';
+        })
+        .catch(function () {
+          showMessage('Could not load weather data. Please try again.');
+        });
+    }
+
+    searchBtn.addEventListener('click', function () {
+      const city = cityInput.value.trim();
+
+      if (city === '') {
+        showMessage('Please enter a city name.');
+        return;
+      }
+
+      showMessage('Reading the instruments...');
+
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`;
+
+      fetch(geoUrl)
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (geoData) {
+          if (!geoData.results || geoData.results.length === 0) {
+            showMessage('City not found. Try a different spelling.');
+            return;
+          }
+
+          const place = geoData.results[0];
+          const label = place.name + (place.country ? ', ' + place.country : '');
+          getWeather(place.latitude, place.longitude, label);
+        })
+        .catch(function () {
+          showMessage('Something went wrong. Please try again.');
+        });
+    });
+
+    cityInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        searchBtn.click();
+      }
+    });
+
+    locationBtn.addEventListener('click', function () {
+      if (!navigator.geolocation) {
+        showMessage('Geolocation is not supported by your browser.');
+        return;
+      }
+
+      showMessage('Locating station...');
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          getWeather(lat, lon, 'Your Location');
+        },
+        function () {
+          showMessage('Location access was denied.');
+        }
+      );
+    });
+  </script>
+
+</body>
+</html>
